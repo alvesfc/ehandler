@@ -3,7 +3,7 @@ package br.org.ehandler;
 import br.org.ehandler.exception.ApplicationException;
 import br.org.ehandler.exception.BadRequestException;
 import br.org.ehandler.exception.NotFoundException;
-import br.org.ehandler.exception.message.ErrorCode;
+import br.org.ehandler.exception.message.ErrorCodeDefault;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,13 +61,14 @@ public class ErrorHandler extends ResponseEntityExceptionHandler {
 
     List<ErrorMessage> errorMessages = new ArrayList<>();
     errorMessages.add(ErrorMessage.builder()
-            .code(ErrorCode.INTERNAL_SERVER_ERROR).build());
+            .code(ErrorCodeDefault.INTERNAL_SERVER_ERROR).build());
 
     return handleExceptionInternal(ex, new ErrorResponse(errorMessages), headers, status, request);
   }
 
   @ExceptionHandler(NotFoundException.class)
   public ResponseEntity<ErrorResponse> notFoundException(final NotFoundException exception, WebRequest request) {
+
 
     try {
       ErrorResponse errorResponse = new ErrorResponse(exception.getMessages().stream()
@@ -82,15 +83,14 @@ public class ErrorHandler extends ResponseEntityExceptionHandler {
 
       return new ResponseEntity(errorResponse, getHttpHeaders(request), HttpStatus.NOT_FOUND);
     } catch (Exception ex) {
-      //return new ResponseEntity(errorResponse, HttpStatus.NOT_FOUND);
+      log.error("m=notFoundException", ex);
+
+      List<ErrorMessage> errorMessages = new ArrayList<>();
+      errorMessages.add(ErrorMessage.builder()
+              .code(ErrorCodeDefault.INTERNAL_SERVER_ERROR).build());
+
+      return new ResponseEntity(errorMessages, getHttpHeaders(request), HttpStatus.INTERNAL_SERVER_ERROR);
     }
-
-    List<ErrorMessage> errorMessages = new ArrayList<>();
-    errorMessages.add(ErrorMessage.builder()
-            .code(ErrorCode.INTERNAL_SERVER_ERROR).build());
-
-    return new ResponseEntity(errorMessages, getHttpHeaders(request), HttpStatus.INTERNAL_SERVER_ERROR);
-
   }
 
 
